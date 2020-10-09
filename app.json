@@ -17,7 +17,24 @@
       "**/*"
     ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.verisurf.ctecalc",
+      "buildNumber": "1.0.0",
+      "infoPlist": {
+        "NSCameraUsageDescription": "NOT USED",
+        "NSCalendarsUsageDescription": "NOT USED",
+        "NSContactsUsageDescription": "NOT USED",
+        "NSLocationWhenInUseUsageDescription": "NOT USED",
+        "NSMicrophoneUsageDescription": "NOT USED",
+        "NSMotionUsageDescription": "NOT USED",
+        "NSPhotoLibraryAddUsageDescription": "NOT USED",
+        "NSPhotoLibraryUsageDescription": "NOT USED",
+        "NSRemindersUsageDescription": "NOT USED"        
+      }
+    },
+    "android": {
+      "package": "com.verisurfsoftware.ctecalculator",
+      "versionCode": 1
     },
     "web": {
       "favicon": "./assets/favicon.png"

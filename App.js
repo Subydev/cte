@@ -368,7 +368,9 @@ class App extends React.Component {
           {/* {Logo Divider } */}
  
           <View style={{flex: 1, paddingTop: 21, alignItems: 'center', }}>
-            <Text>VERISURF SOFTWARE, INC.</Text>
+            <Text 
+            onPress={() => Linking.openURL('http://verisurf.com')}>
+              VERISURF SOFTWARE, INC.</Text>
           </View>
 
           <StatusBar style="auto" />
