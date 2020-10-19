@@ -180,10 +180,11 @@ class App extends React.Component {
                           <Picker.Item label={"Beryllium-Copper"} value={"0.0000099"} />
                           <Picker.Item label={"Brass"} value={"0.0000100"} />
                           <Picker.Item label={"Copper(99.9%)"} value={"0.0000098"} />
+                          <Picker.Item label={"Concrete"} value={"0.0000051"} />
                           <Picker.Item label={"Fiberglass"} value={"0.0000079"} />
                           <Picker.Item label={"Gold"} value={"0.0000082"} />
                           <Picker.Item label={"Graphite"} value={"0.0000044"} />
-                          <Picker.Item label={"Invar"} value={"0.0.0000035"} />
+                          <Picker.Item label={"Invar"} value={"0.0000035"} />
                           <Picker.Item label={"Iron"} value={"0.0000067"} />
                           <Picker.Item label={"Kovar"} value={"0.0000033"} />
                           <Picker.Item label={"Lead"} value={"0.0000151"} />
