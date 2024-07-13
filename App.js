@@ -1,515 +1,452 @@
+import React, { useState, useEffect } from "react";
 import { StatusBar } from "expo-status-bar";
-import * as React from "react";
-
-import { Linking } from "expo";
-import { Ionicons } from "@expo/vector-icons";
+import * as Clipboard from "expo-clipboard";
 import {
   StyleSheet,
   Text,
+  Modal,
+  TouchableOpacity,
   View,
   TextInput,
-  TouchableOpacity,
-  ScrollView,
-  Picker,
+  Linking,
+  Dimensions,
+  Platform,
 } from "react-native";
 import {
   ButtonGroup,
-  ThemeProvider,
   Icon,
   SocialIcon,
-  Tooltip,
-  Input,
-  Slider,
   Divider,
-  BottomSheet,
-} from "react-native-elements";
+  Input,
+} from "@rneui/themed";
+import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
+import { ScrollView } from "react-native-gesture-handler";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { RFValue } from "react-native-responsive-fontsize";
 
-var inchUnit = true;
+const { width, height } = Dimensions.get("window");
 
-class App extends React.Component {
-  constructor() {
-    super();
+const App = () => {
+  const [state, setState] = useState({
+    selectedIndex: 1, // Default to Metric
+    refTemp: 20,
+    matTemp: 26.67,
+    cteval: 0.000013,
+    lengthVal: 1,
+    changeInLengthVal: 0,
+    totalLengthVal: 0,
+    tempUnits: "°C",
+    measUnits: "(mm)",
+    cteCo: "mm/mm °C",
+  });
+  const [modalVisible, setModalVisible] = useState(false);
+  const [value, setValue] = useState("custom_0.000013_0.000007222");
+  const [showCopiedOverlay, setShowCopiedOverlay] = useState(false);
+  const [items, setItems] = useState([
+    { label: "Custom Material", value: "custom", cteC: 0.000000, cteF: 0.000000 },
+    { label: "Aluminum (99.9%)", value: "aluminum", cteC: 0.000023, cteF: 0.000013 },
+    { label: "Aluminum (2024-T4)", value: "aluminum_2024", cteC: 0.000022, cteF: 0.000012 },
+    { label: "Aluminum (6061-T4)", value: "aluminum_6061", cteC: 0.000024, cteF: 0.0000131 },
+    { label: "Aluminum (7075-T6)", value: "aluminum_7075", cteC: 0.000024, cteF: 0.0000131 },
+    { label: "Beryllium", value: "beryllium", cteC: 0.000012, cteF: 0.0000064 },
+    { label: "Beryllium-Copper", value: "beryllium_copper", cteC: 0.000018, cteF: 0.0000099 },
+    { label: "Brass", value: "brass", cteC: 0.000019, cteF: 0.0000104 },
+    { label: "Bronze", value: "bronze", cteC: 0.000018, cteF: 0.0000100 },
+    { label: "Copper (99.9%)", value: "copper", cteC: 0.000018, cteF: 0.0000098 },
+    { label: "Fiberglass", value: "fiberglass", cteC: 0.000014, cteF: 0.0000079 },
+    { label: "Gold", value: "gold", cteC: 0.000015, cteF: 0.0000082 },
+    { label: "Graphite", value: "graphite", cteC: 0.000008, cteF: 0.0000044 },
+    { label: "Invar, Copper Clad", value: "invar_copper_clad", cteC: 0.000006, cteF: 0.0000035 },
+    { label: "Iron", value: "iron", cteC: 0.000012, cteF: 0.0000067 },
+    { label: "Kovar", value: "kovar", cteC: 0.000006, cteF: 0.0000033 },
+    { label: "Lead", value: "lead", cteC: 0.000027, cteF: 0.0000151 },
+    { label: "Magnesium", value: "magnesium", cteC: 0.000025, cteF: 0.000014 },
+    { label: "Molybdenum", value: "molybdenum", cteC: 0.000005, cteF: 0.000003 },
+    { label: "Monel", value: "monel", cteC: 0.000014, cteF: 0.0000075 },
+    { label: "Nickel", value: "nickel", cteC: 0.000013, cteF: 0.0000072 },
+    { label: "Phosphor Bronze", value: "phosphor_bronze", cteC: 0.000018, cteF: 0.0000099 },
+    { label: "Silver", value: "silver", cteC: 0.000019, cteF: 0.0000107 },
+    { label: "Solder", value: "solder", cteC: 0.000024, cteF: 0.0000134 },
+    { label: "Steel", value: "steel", cteC: 0.000013, cteF: 0.0000073 },
+    { label: "Stainless Steel 310", value: "stainless_310", cteC: 0.000014, cteF: 0.0000080 },
+    { label: "Stainless Steel 410", value: "stainless_410", cteC: 0.000010, cteF: 0.0000055 },
+    { label: "Tin", value: "tin", cteC: 0.000023, cteF: 0.000013 },
+    { label: "Titanium", value: "titanium", cteC: 0.000009, cteF: 0.0000048 },
+    { label: "Tungsten", value: "tungsten", cteC: 0.000004, cteF: 0.0000024 },
+    { label: "Zinc", value: "zinc", cteC: 0.000030, cteF: 0.0000165 },
+  ]);
 
-    this.state = {
-      selectedIndex: 0,
-      refTemp: 68,
-      matTemp: 80,
-      cteval: 0.000013,
-      lengthVal: 1,
-      changeInLengthVal: 0,
-      totalLengthVal: 0,
-      tempUnits: "°F",
-      measUnits: "(in)",
-      cteCo: "in/in °F",
-    };
-    this.updateIndex = this.updateIndex.bind(this);
-    this.updateResults = this.updateResults.bind(this);
-  }
+  const updateResults = () => {
+    const { lengthVal, cteval, matTemp, refTemp } = state;
+    const tempDifference = matTemp - refTemp;
+    const changeInLength = (lengthVal * cteval * tempDifference).toFixed(8);
+    const totalLength = (parseFloat(changeInLength) + parseFloat(lengthVal)).toFixed(8);
+    
+    // Calculate the Correction Scale Factor (CSF)
+    const csf = (parseFloat(lengthVal) / parseFloat(totalLength)).toFixed(8);
+  
+    setState((prevState) => ({
+      ...prevState,
+      changeInLengthVal: changeInLength,
+      totalLengthVal: totalLength,
+      correctionScaleFactor: csf,
+    }));
+  };
 
-  updateResults() {
-    if (inchUnit) {
-      var changeInLength = parseFloat(this.state.lengthVal * this.state.cteval * (this.state.matTemp - this.state.refTemp)).toFixed(8)
-      var totalLength =  parseFloat(changeInLength) + parseFloat(this.state.lengthVal)
-      this.setState({
-        totalLengthVal: totalLength,
-        changeInLengthVal: changeInLength
+  const updateIndex = (selectedIndex) => {
+    if (selectedIndex !== state.selectedIndex) {
+      const isMetric = selectedIndex === 1;
+      setState((prevState) => {
+        const newRefTemp = isMetric ? 20 : 68;
+        const newMatTemp = isMetric ? 26.67 : 80;
+        const newLengthVal = isMetric
+          ? (prevState.lengthVal * 25.4).toFixed(4)
+          : (prevState.lengthVal / 25.4).toFixed(4);
+        
+        const currentMaterial = items.find(item => item.value === value);
+        const newCteVal = isMetric ? currentMaterial.cteC : currentMaterial.cteF;
+  
+        return {
+          ...prevState,
+          tempUnits: isMetric ? "°C" : "°F",
+          measUnits: isMetric ? "(mm)" : "(in)",
+          cteCo: isMetric ? "mm/mm °C" : "in/in °F",
+          refTemp: newRefTemp,
+          matTemp: newMatTemp,
+          lengthVal: parseFloat(newLengthVal),
+          cteval: newCteVal,
+          selectedIndex,
+        };
       });
-      console.log("Length = " + this.state.lengthVal)
-      console.log("CTE = " + this.state.cteval)
-      console.log("Ref Temp = " + this.state.refTemp)
-      console.log("Mat Temp = " + this.state.matTemp)
-      console.log("TL = " + totalLength)
-      console.log("CiL = " + changeInLength)
-
-
     }
-    if (inchUnit == false) {
-      var changeInLength = parseFloat(this.state.lengthVal * (this.state.cteval * 1.8) * (this.state.matTemp - this.state.refTemp)).toFixed(8)
-      var totalLength =  parseFloat(changeInLength) + parseFloat(this.state.lengthVal)
-      this.setState({
-        totalLengthVal: totalLength,
-        changeInLengthVal: changeInLength
-      });
+  };
+
+  const onPickerValueChange = (selectedValue) => {
+    const selectedMaterial = items.find(item => item.value === selectedValue);
+    if (selectedMaterial) {
+      const cteValue = state.selectedIndex === 1 ? selectedMaterial.cteC : selectedMaterial.cteF;
+      setState(prevState => ({
+        ...prevState,
+        cteval: cteValue,
+      }));
     }
+  };
 
-  }
+  useEffect(() => {
+    updateResults();
+  }, [state.lengthVal, state.cteval, state.matTemp, state.refTemp]);
 
+  const copyToClipboard = async (value) => {
+    await Clipboard.setStringAsync(value);
+    setShowCopiedOverlay(true);
+    setTimeout(() => setShowCopiedOverlay(false), 2000);
+  };
 
-  updateIndex(selectedIndex) {
-    if (selectedIndex == 0) {
-      this.setState({
-        tempUnits: "°F",
-        measUnits: "(in)",
-        cteCo: "in/in °F",
-        refTemp: 68,
-        matTemp: 80,
-      });
-      inchUnit = true;
-      this.updateResults()
-    }
-    if (selectedIndex == 1) {
-      this.setState({
-        tempUnits: "°C",
-        measUnits: "(mm)",
-        cteCo: "mm/mm °C",
-        refTemp: 20,
-        matTemp: 26,
-      });
-      inchUnit = false;
-      this.updateResults()
-    }
-
-    this.setState({ selectedIndex });
-  }
-
-  onPickerValueChange = (value, index) => {
-
-      if(inchUnit){
-        this.setState(
-          {
-            cteval: value
-          },
-        )
-      }
-      if(inchUnit == false){
-        this.setState(
-          {
-            cteval: parseFloat(value * 1.8).toFixed(8)
-          },
-        )
-      }
-
-      this.updateResults()
-    }
-  componentDidMount() {
-
-    var refTemp = this.state.refTemp;
-    var matTemp = this.state.matTemp;
-    var changeinTemp = matTemp - refTemp;
-    this.setState({
-      totalLengthVal: parseFloat(this.state.lengthVal * this.state.cteval  * changeinTemp + this.state.lengthVal).toFixed(8),
-      changeInLengthVal: parseFloat(this.state.lengthVal * this.state.cteval  * changeinTemp).toFixed(8)
-    });
-    console.log("mounted")
-
-  }
-
-  render() {
-    const buttons = ["Imperial", "Metric"];
-    const { selectedIndex } = this.state;
-
-    return (
-      <View style={styles.container}>
-        <ScrollView>
-          <View style={styles.radios}>
-            <ButtonGroup
-              onPress={this.updateIndex}
-              selectedIndex={selectedIndex}
-              buttons={buttons}
-              style={{ borderColor: "Purple",  }}
-              containerStyle={{ height: 50 }}
-            />
-          </View>
-
-          {/* Material Container */}
-          <View style ={{padding: 10}}>
-            <Divider style={{ backgroundColor: "black", height: 1, }} />
-          </View>
-          <View style={{padding:5}}>
-            <View style={{flexDirection:"column"}}>
-              <View>
-                <View style={{flexDirection:"row"}}>
-                    <View style={styles.textColumn}>
-                        <Text style={{paddingTop: 10, fontSize: 20}}>Material:</Text>
-                    </View>
-                    <View style={{flex: 1}}>
-                        <Picker
-                          selectedValue={this.state.cteval}
-                          itemStyle={styles.pickerItem}
-                          style={styles.pickerStyle}
-                          onValueChange={this.onPickerValueChange}
-
-
-                        >
-                          <Picker.Item label={"Custom Material..."} value={"0.000013"} />
-                          <Picker.Item label={"Aluminum(99.9%)"} value={"0.000013"} />
-                          <Picker.Item label={"Aluminum(2024-T4)"} value={"0.000012"} />
-                          <Picker.Item label={"Aluminum(6061-T4)"} value={"0.0000131"} />
-                          <Picker.Item label={"Aluminum(7075-T6)"} value={"0.0000131"} />
-                          <Picker.Item label={"Beryllium"} value={"0.0000064"} />
-                          <Picker.Item label={"Beryllium-Copper"} value={"0.0000099"} />
-                          <Picker.Item label={"Brass"} value={"0.0000100"} />
-                          <Picker.Item label={"Copper(99.9%)"} value={"0.0000098"} />
-                          <Picker.Item label={"Concrete"} value={"0.0000051"} />
-                          <Picker.Item label={"Fiberglass"} value={"0.0000079"} />
-                          <Picker.Item label={"Gold"} value={"0.0000082"} />
-                          <Picker.Item label={"Graphite"} value={"0.0000044"} />
-                          <Picker.Item label={"Invar"} value={"0.0000035"} />
-                          <Picker.Item label={"Iron"} value={"0.0000067"} />
-                          <Picker.Item label={"Kovar"} value={"0.0000033"} />
-                          <Picker.Item label={"Lead"} value={"0.0000151"} />
-                          <Picker.Item label={"Magnesium"} value={"0.000014"} />
-                          <Picker.Item label={"Molybdenum"} value={"0.000003"} />
-                          <Picker.Item label={"Monel"} value={"0.0000075"} />
-                          <Picker.Item label={"Nickel"} value={"0.0000072"} />
-                          <Picker.Item label={"PhosphorBronze"} value={"0.0000099"} />
-                          <Picker.Item label={"Silver"} value={"0.0000107"} />
-                          <Picker.Item label={"Solder"} value={"0.0000134"} />
-                          <Picker.Item label={"Steel"} value={"0.0000073"} />
-                          <Picker.Item label={"StainlessSteel310"} value={"0.0000080"} />
-                          <Picker.Item label={"StainlessSteel410"} value={"0.0000055"} />
-                          <Picker.Item label={"Tin"} value={"0.000013"} />
-                          <Picker.Item label={"Titanium"} value={"0.0000048"} />
-                          <Picker.Item label={"Tungsten"} value={"0.0000024"} />
-                          <Picker.Item label={"Zinc"} value={"0.0000165"} />
-                        </Picker>
-                    </View>
-                </View>
-              </View>
-            </View>
-          </View>
-          <View style ={{padding: 10}}>
-            <Divider style={{ backgroundColor: "black", height: 1 }} />
-          </View>
-
-          {/* CTE Container */}
-          <View style={{padding:10}}>
-            <View style={{flexDirection:"column"}}>
-              <View>
-                <View style={{flexDirection:"row"}}>
-                    <View style={styles.textColumn}>
-                        <Text style={styles.textColumnStyle}>CTE:</Text>
-                        <Text style={{paddingRight:5, fontSize: 15, }}>{this.state.cteCo} </Text>
-
-                    </View>
-                    <View style={styles.inputColumn}>
-                        <TextInput 
-                        style={{justifyContent: 'flex-end', fontSize:21,}}
-                        onChangeText={(cteval) => this.setState({ cteval })}
-                        defaultValue={String(this.state.cteval)}
-                        onSubmitEditing={this.updateResults}
-                        keyboardType={"numeric"} />             
-                    </View>
-                </View>
-              </View>
-            </View>
-          </View>
-
-          {/* Length Container */}
-          <View style={{padding:10}}>
-            <View style={{flexDirection:"column"}}>
-              <View>
-                <View style={{flexDirection:"row"}}>
-                    <View style={styles.textColumn}>
-                        <Text style={styles.textColumnStyle}>Length:</Text>
-                        <Text style={{paddingRight:5, fontSize: 15,}}>{this.state.measUnits} </Text>
-                    </View>
-
-                    <View style={styles.inputColumn}>
-                        <TextInput 
-                        style={{justifyContent: 'flex-end', fontSize:21,}}
-                        onChangeText={(lengthVal) => this.setState({ lengthVal })}
-                        defaultValue={String(this.state.lengthVal)}
-                        onSubmitEditing={this.updateResults}
-                        keyboardType={"numeric"} />            
-                    </View>
-                </View>
-              </View>
-            </View>
-          </View>
-
-          {/* Ref Mat Container */}
-          <View style={{padding:10}}>
-            <View style={{flexDirection:"column"}}>
-              <View>
-                <View style={{flexDirection:"row"}}>
-                    <View style={styles.textColumn}>
-                        <Text style={styles.textColumnStyle}>Ref Temp:</Text>
-
-                    </View>
-                    <View style={{borderColor: 'green', borderWidth:0, flexDirection: 'row'}}>
-                      <Icon
-                        name="thermometer-quarter"
-                        type="font-awesome"
-                        color="black"
-                      />
-                      <Text style={{paddingLeft: 5, paddingRight: 5, fontSize: 16}} >{this.state.tempUnits} </Text>
-                    </View>
-                    <View style={styles.inputColumn}>
-                        <TextInput 
-                        style={{justifyContent: 'flex-end', fontSize:21,}}
-                        onChangeText={(refTemp) => this.setState({ refTemp })}
-                        defaultValue={String(this.state.refTemp)}
-                        onSubmitEditing={this.updateResults}
-                        keyboardType={"numeric"} />            
-                    </View>
-                </View>
-              </View>
-            </View>
-          </View>
-
-          {/* Mat Container */}
-          <View style={{padding:10}}>
-            <View style={{flexDirection:"column"}}>
-              <View>
-                <View style={{flexDirection:"row"}}>
-                    <View style={styles.textColumn}>
-                        <Text style={styles.textColumnStyle}>Mat Temp:</Text>
-                    </View>
-                    <View style={{borderColor: 'green', borderWidth:0, flexDirection: 'row'}}>
-                      <Icon
-                        name="thermometer-quarter"
-                        type="font-awesome"
-                        color="black"
-                      />
-                      <Text style={{paddingLeft: 5, paddingRight: 5, fontSize: 16}} >{this.state.tempUnits} </Text>
-                    </View>
-                    <View style={styles.inputColumn}>
-                        <TextInput 
-                        style={{justifyContent: 'flex-end', fontSize:21,}}
-                        onChangeText={(matTemp) => this.setState({ matTemp })}
-                        defaultValue={String(this.state.matTemp)}
-                        onSubmitEditing={this.updateResults}
-                        keyboardType={"numeric"} />            
-                    </View>
-                </View>
-              </View>
-            </View>
-          </View>
-
-          {/* {Results Divider Container} */}
-          <View>
-            <Divider style={{ backgroundColor: "light-gray", height: 35 }} />
-          </View>
-
-          {/* Change in Length */}
-          <View style={{paddingLeft: 10}}>
-            <Text style={styles.textColumnStyle}>Change in Length: </Text>
-          </View>
-          <View
-            style={{
-              borderColor: "black",
-              borderWidth: 0,
-              flex: 1,
-              flexDirection: "row",
-            }}
-          >
-            <Input
-              numericvalue
-              editable={false}
-              leftIcon={{ type: "font-awesome", name: "angle-right" }}
-              style={styles}
-              value={String(this.state.changeInLengthVal)}
-              //onChangeText={(value) => this.setState({ comment: value })}
-            />
-          </View>
-
-          {/* Total Length */}
-          <View style={{paddingLeft: 10}}>
-            <Text style={styles.textColumnStyle}>Total Length: </Text>
-          </View>
-          <View
-            style={{
-              borderColor: "black",
-              borderWidth: 0,
-              flex: 1,
-              flexDirection: "row",
-            }}
-          >
-            <Input
-              numericvalue
-              editable={false}
-              leftIcon={{ type: "font-awesome", name: "angle-double-right" }}
-              style={styles}
-              value={String(this.state.totalLengthVal)}
-              onChangeText={(value) => this.setState({ comment: value })}
-            />
-          </View>
-
-          {/* {Logo Divider } */}
- 
-          <View style={{flex: 1, paddingTop: 21, alignItems: 'center', }}>
-            <Text 
-            onPress={() => Linking.openURL('http://verisurf.com')}>
-              VERISURF SOFTWARE, INC.</Text>
-          </View>
-
-          <StatusBar style="auto" />
-
-          {/* {Start Footer} */}
-          <View style={styles.endSeperator}>
-            <SocialIcon
-              type="twitter"
-              raised
-              light={false}
-              onPress={() => Linking.openURL("https://twitter.com/verisurf")}
-            />
-            <SocialIcon
-              type="linkedin"
-              raised
-              light={false}
-              onPress={() =>
-                Linking.openURL("https://www.linkedin.com/company/verisurf/")
-              }
-            />
-            <SocialIcon
-              type="facebook"
-              raised
-              light={false}
-              onPress={() =>
-                Linking.openURL("https://www.facebook.com/verisurf/")
-              }
-            />
-            <SocialIcon
-              type="instagram"
-              raised
-              light={false}
-              onPress={() =>
-                Linking.openURL("https://www.instagram.com/verisurf/")
-              }
-            />
-            <SocialIcon
-              type="youtube"
-              raised
-              light={false}
-              onPress={() =>
-                Linking.openURL(
-                  "https://www.youtube.com/channel/UCRaDH0ERMqN5Zrz9pUjzwyw"
-                )
-              }
-            />
-          </View>
-        </ScrollView>
+  const renderInputField = (label, value, onChangeText, unit) => (
+    <View style={styles.inputContainer}>
+      <Text style={styles.label}>{label}:</Text>
+      <View style={styles.inputWrapper}>
+        <TextInput
+          style={styles.input}
+          value={String(value)}
+          onChangeText={onChangeText}
+          keyboardType="numeric"
+        />
+        <Text style={styles.unit}>{unit}</Text>
       </View>
-    );
-  }
-}
+    </View>
+  );
 
-export default App;
+  return (
+    <GestureHandlerRootView style={styles.flex1}>
+      <SafeAreaProvider>
+        <SafeAreaView style={styles.container}>
+          <ScrollView contentContainerStyle={styles.scrollContent}>
+            <View style={styles.content}>
+              <ButtonGroup
+                onPress={updateIndex}
+                selectedIndex={state.selectedIndex}
+                buttons={["Imperial", "Metric"]}
+                containerStyle={styles.buttonGroup}
+                textStyle={styles.buttonText}
+                selectedButtonStyle={styles.selectedButton}
+                innerBorderStyle={styles.innerBorder}
+              />
+
+              <Divider style={styles.divider} />
+
+              <View style={styles.pickerContainer}>
+                <Text style={styles.label}>Material:</Text>
+                <TouchableOpacity
+                  style={styles.pickerButton}
+                  onPress={() => setModalVisible(true)}
+                >
+                  <Text style={styles.pickerButtonText}>
+                    {items.find((item) => item.value === value)?.label ||
+                      "Select a material"}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+
+              <Modal
+                animationType="slide"
+                transparent={true}
+                visible={modalVisible}
+                onRequestClose={() => setModalVisible(false)}
+              >
+                <View style={styles.modalView}>
+                  <ScrollView style={styles.modalScroll}>
+                    {items.map((item) => (
+                      <TouchableOpacity
+                        key={item.value}
+                        style={styles.modalItem}
+                        onPress={() => {
+                          setValue(item.value);
+                          onPickerValueChange(item.value);
+                          setModalVisible(false);
+                        }}
+                      >
+                        <Text style={styles.modalItemText}>{item.label}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </ScrollView>
+                </View>
+              </Modal>
+
+              <Divider style={styles.divider} />
+
+              {renderInputField(
+                "CTE",
+                state.cteval,
+                (cteval) => setState({ ...state, cteval }),
+                state.cteCo
+              )}
+              {renderInputField(
+                "Length",
+                state.lengthVal,
+                (lengthVal) => setState({ ...state, lengthVal }),
+                state.measUnits
+              )}
+              {renderInputField(
+                "Ref Temp",
+                state.refTemp,
+                (refTemp) => setState({ ...state, refTemp }),
+                state.tempUnits
+              )}
+              {renderInputField(
+                "Mat Temp",
+                state.matTemp,
+                (matTemp) => setState({ ...state, matTemp }),
+                state.tempUnits
+              )}
+
+              <View style={styles.resultsContainer}>
+                <Text style={styles.resultLabel}>Change in Length:</Text>
+                <View style={styles.resultInputWrapper}>
+                  <Text style={styles.resultText}>{state.changeInLengthVal}</Text>
+                </View>
+                <Text style={styles.resultLabel}>Total Length:</Text>
+                <TouchableOpacity onPress={() => copyToClipboard(String(state.totalLengthVal))}>
+                  <View style={styles.resultInputWrapper}>
+                    <Text style={styles.resultText}>{state.totalLengthVal}</Text>
+                  </View>
+                </TouchableOpacity>
+                <Text style={styles.resultLabel}>Correction Scale Factor:</Text>
+                <View style={styles.resultInputWrapper}>
+                  <Text style={styles.resultText}>{state.correctionScaleFactor}</Text>
+                </View>
+                {showCopiedOverlay && (
+                  <View style={styles.copiedOverlay}>
+                    <Text style={styles.copiedText}>Copied to clipboard!</Text>
+                  </View>
+                )}
+              </View>
+            </View>
+
+            <View style={styles.footer}>
+              <Text
+                style={styles.footerText}
+                onPress={() => Linking.openURL("http://verisurf.com")}
+              >
+                VERISURF SOFTWARE, INC.
+              </Text>
+              <View style={styles.socialIcons}>
+                <SocialIcon
+                  type="twitter"
+                  onPress={() => Linking.openURL("https://twitter.com/verisurf")}
+                />
+                <SocialIcon
+                  type="linkedin"
+                  onPress={() => Linking.openURL("https://www.linkedin.com/company/verisurf/")}
+                />
+                <SocialIcon
+                  type="facebook"
+                  onPress={() => Linking.openURL("https://www.facebook.com/verisurf/")}
+                />
+                <SocialIcon
+                  type="instagram"
+                  onPress={() => Linking.openURL("https://www.instagram.com/verisurf/")}
+                />
+                <SocialIcon
+                  type="youtube"
+                  onPress={() => Linking.openURL("https://www.youtube.com/channel/UCRaDH0ERMqN5Zrz9pUjzwyw")}
+                />
+              </View>
+            </View>
+          </ScrollView>
+        </SafeAreaView>
+      </SafeAreaProvider>
+    </GestureHandlerRootView>
+  );
+};
 
 const styles = StyleSheet.create({
-
-  // parentContainer:
-  // {
-  //   flex:1, 
-  //   borderColor:'purple', 
-  //   borderWidth: 0, 
-  //   padding: 10,
-  // },
-
-  textColumn:{
-    flex:1, 
-    borderColor:'purple', 
-    borderWidth: 0, 
-    paddingLeft: 0, 
-    marginRight: -50
-  },
-
-  textColumnStyle:{
-    justifyContent: 'flex-start',
-    fontSize:21,
-  },
-
-  pickerItem: {
-    color: 'black',
-    height: 60,
-    fontSize:20,
-    alignContent: "center",
-    flexDirection: "column"
-  },
-  pickerStyle: {
-    color: 'black',
-    borderColor: 'black',
-    borderWidth: 1,
-    borderRadius: 10,
-    borderBottomWidth: 1
-  },
-  inputColumn:{
-    flex:1, 
-    borderColor:'black', 
-    borderWidth: 1, 
-    paddingLeft: 5, 
-    marginRight: 10, 
-    height: 35,
-  },
-
-
-  textinputStyle: {
-    height: 40,
-    paddingLeft: 10,
-    marginLeft: 10,
-    marginRight: 15,
+  flex1: {
     flex: 1,
-    borderColor: "black",
-    borderWidth: 1,
-    width: 100,
-    fontSize: 20,
-  },
-  textStyle: {
-    marginLeft: 10,
-    fontSize: 20,
-    marginRight: 10,
   },
   container: {
     flex: 1,
-    borderWidth: 0,
-    paddingTop: 20,
-    justifyContent: "flex-start",
+    backgroundColor: "#F7FAFC",
   },
-  radios: {
+  scrollContent: {
+    flexGrow: 1,
+    paddingVertical: RFValue(20),
+  },
+  content: {
     flex: 1,
-    borderWidth: 0,
-    paddingTop: 20,
-    backgroundColor: "#fff",
+    padding: RFValue(20),
+  },
+  buttonGroup: {
+    height: RFValue(50),
+    marginBottom: RFValue(20),
+    borderRadius: RFValue(10),
+    borderColor: "#4A5568",
+  },
+  buttonText: {
+    fontSize: RFValue(16),
+    fontWeight: "600",
+    color: "#4A5568",
+  },
+  selectedButton: {
+    backgroundColor: "#4A5568",
+  },
+  innerBorder: {
+    width: 0,
+  },
+  divider: {
+    backgroundColor: "#CBD5E0",
+    height: 1,
+    marginVertical: RFValue(20),
+  },
+  pickerContainer: {
+    marginBottom: RFValue(20),
+  },
+  pickerButton: {
+    backgroundColor: "#EDF2F7",
+    padding: RFValue(12),
+    borderRadius: RFValue(8),
+    borderWidth: 1,
+    borderColor: "#CBD5E0",
+  },
+  pickerButtonText: {
+    fontSize: RFValue(16),
+    color: "#4A5568",
+  },
+  modalView: {
+    flex: 1,
+    justifyContent: "center",
     alignItems: "center",
+    backgroundColor: "rgba(0,0,0,0.5)",
+  },
+  modalScroll: {
+    width: width * 0.95,
+    maxHeight: height * 0.8,
+    backgroundColor: "white",
+    borderRadius: RFValue(20),
+    padding: RFValue(20),
+  },
+  modalItem: {
+    paddingVertical: RFValue(15),
+    borderBottomWidth: 1,
+    borderBottomColor: "#E2E8F0",
+    width: "100%",
+  },
+  modalItemText: {
+    fontSize: RFValue(16),
+    color: "#4A5568",
+  },
+  inputContainer: {
+    marginBottom: RFValue(16),
+  },
+  label: {
+    fontSize: RFValue(14),
+    fontWeight: "600",
+    marginBottom: RFValue(5),
+    color: "#4A5568",
+  },
+  inputWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#EDF2F7',
+    borderRadius: RFValue(8),
+    paddingHorizontal: RFValue(12),
+    borderWidth: 1,
+    borderColor: '#CBD5E0',
+    height: RFValue(50),
+  },
+  input: {
+    flex: 1,
+    fontSize: RFValue(16),
+    color: '#4A5568',
+  },
+  unit: {
+    marginLeft: RFValue(10),
+    fontSize: RFValue(16),
+    color: '#718096',
+  },
+  resultInputWrapper: {
+    backgroundColor: '#EDF2F7',
+    borderRadius: RFValue(8),
+    paddingHorizontal: RFValue(12),
+    marginBottom: RFValue(20),
+    height: RFValue(50),
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#CBD5E0',
+  },
+  resultText: {
+    fontSize: RFValue(16),
+    color: '#4A5568',
+    fontWeight: '600',
+  },
+  footer: {
+    alignItems: "center",
+    padding: RFValue(16),
+    backgroundColor: "#EDF2F7",
+  },
+  footerText: {
+    fontSize: RFValue(14),
+    fontWeight: "bold",
+    marginBottom: RFValue(20),
+    color: "#4A5568",
+  },
+  socialIcons: {
+    flexDirection: "row",
     justifyContent: "center",
   },
-  endSeperator: {
-    flex: 1,
-    borderWidth: 0,
-    flexDirection: "row",
-    justifyContent: "space-evenly",
-    paddingTop: 15,
-    paddingBottom: 0,
+  copiedOverlay: {
+    position: "absolute",
+    bottom: RFValue(20),
+    left: 0,
+    right: 0,
+    alignItems: "center",
+  },
+  copiedText: {
+    backgroundColor: "rgba(0,0,0,0.7)",
+    color: "white",
+    padding: RFValue(10),
+    borderRadius: RFValue(5),
   },
 });
+
+export default App;
