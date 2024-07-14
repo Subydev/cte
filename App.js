@@ -75,7 +75,7 @@ const App = () => {
     { label: "Tungsten", value: "tungsten", cteC: 0.000004, cteF: 0.0000024 },
     { label: "Zinc", value: "zinc", cteC: 0.000030, cteF: 0.0000165 },
   ]);
-
+  
   const updateResults = () => {
     const { lengthVal, cteval, matTemp, refTemp } = state;
     const tempDifference = matTemp - refTemp;
@@ -103,8 +103,13 @@ const App = () => {
           ? (prevState.lengthVal * 25.4).toFixed(4)
           : (prevState.lengthVal / 25.4).toFixed(4);
         
+        // Find the current material based on the current value state
         const currentMaterial = items.find(item => item.value === value);
-        const newCteVal = isMetric ? currentMaterial.cteC : currentMaterial.cteF;
+        
+        // If no material is found, use a default CTE value
+        const newCteVal = currentMaterial 
+          ? (isMetric ? currentMaterial.cteC : currentMaterial.cteF)
+          : prevState.cteval;
   
         return {
           ...prevState,
@@ -122,6 +127,7 @@ const App = () => {
   };
 
   const onPickerValueChange = (selectedValue) => {
+    setValue(selectedValue); // Update the value state
     const selectedMaterial = items.find(item => item.value === selectedValue);
     if (selectedMaterial) {
       const cteValue = state.selectedIndex === 1 ? selectedMaterial.cteC : selectedMaterial.cteF;
@@ -156,14 +162,29 @@ const App = () => {
       </View>
     </View>
   );
-
+  
+  const handleSelectionChange = (selectedValue, isUnitChange) => {
+    // Update value state
+    setValue(selectedValue);
+  
+    if (isUnitChange) {
+      updateIndex(selectedValue === "Imperial" ? 0 : 1); // Convert "Imperial" to 0 and "Metric" to 1
+    } else {
+      // Material change logic (find cteValue and update state)
+      const selectedMaterial = items.find(item => item.value === selectedValue);
+      if (selectedMaterial) {
+        const cteValue = state.selectedIndex === 1 ? selectedMaterial.cteC : selectedMaterial.cteF;
+        setState(prevState => ({ ...prevState, cteval: cteValue }));
+      }
+    }
+  };
   return (
     <GestureHandlerRootView style={styles.flex1}>
       <SafeAreaProvider>
         <SafeAreaView style={styles.container}>
           <ScrollView contentContainerStyle={styles.scrollContent}>
             <View style={styles.content}>
-              <ButtonGroup
+            <ButtonGroup
                 onPress={updateIndex}
                 selectedIndex={state.selectedIndex}
                 buttons={["Imperial", "Metric"]}

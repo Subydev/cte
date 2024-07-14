@@ -2,7 +2,7 @@
   "expo": {
     "name": "CTE Calc",
     "slug": "cte",
-    "version": "1.0.3",
+    "version": "1.0.5",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "splash": {
@@ -19,7 +19,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.verisurf.ctecalc",
-      "buildNumber": "1.0.3",
+      "buildNumber": "1.0.5",
       "infoPlist": {
         "NSCameraUsageDescription": "NOT USED",
         "NSCalendarsUsageDescription": "NOT USED",
@@ -34,7 +34,7 @@
     },
     "android": {
       "package": "com.verisurfsoftware.ctecalc",
-      "versionCode": 3
+      "versionCode": 5
     },
     "web": {
       "favicon": "./assets/favicon.png"
