@@ -31,7 +31,7 @@ const App = () => {
     selectedIndex: 1, // Default to Metric
     refTemp: 20,
     matTemp: 26.67,
-    cteval: 0.000013,
+    cteval: 0.000023, // Set this to the CTE of aluminum (or your default material)
     lengthVal: 1,
     changeInLengthVal: 0,
     totalLengthVal: 0,
@@ -40,7 +40,7 @@ const App = () => {
     cteCo: "mm/mm °C",
   });
   const [modalVisible, setModalVisible] = useState(false);
-  const [value, setValue] = useState("custom_0.000013_0.000007222");
+  const [value, setValue] = useState("aluminum"); // Set a default material
   const [showCopiedOverlay, setShowCopiedOverlay] = useState(false);
   const [items, setItems] = useState([
     { label: "Custom Material", value: "custom", cteC: 0.000000, cteF: 0.000000 },
@@ -103,7 +103,7 @@ const App = () => {
           ? (prevState.lengthVal * 25.4).toFixed(4)
           : (prevState.lengthVal / 25.4).toFixed(4);
         
-        const currentMaterial = items.find(item => item.value === value);
+        const currentMaterial = items.find(item => item.value === value) || items[0]; // Provide a default material
         const newCteVal = isMetric ? currentMaterial.cteC : currentMaterial.cteF;
   
         return {
@@ -122,14 +122,12 @@ const App = () => {
   };
 
   const onPickerValueChange = (selectedValue) => {
-    const selectedMaterial = items.find(item => item.value === selectedValue);
-    if (selectedMaterial) {
-      const cteValue = state.selectedIndex === 1 ? selectedMaterial.cteC : selectedMaterial.cteF;
-      setState(prevState => ({
-        ...prevState,
-        cteval: cteValue,
-      }));
-    }
+    const selectedMaterial = items.find(item => item.value === selectedValue) || items[0]; // Provide a default material
+    const cteValue = state.selectedIndex === 1 ? selectedMaterial.cteC : selectedMaterial.cteF;
+    setState(prevState => ({
+      ...prevState,
+      cteval: cteValue,
+    }));
   };
 
   useEffect(() => {
@@ -379,8 +377,8 @@ const styles = StyleSheet.create({
     marginBottom: RFValue(16),
   },
   label: {
-    fontSize: RFValue(14),
-    fontWeight: "600",
+    fontSize: RFValue(16),
+    fontWeight: "500",
     marginBottom: RFValue(5),
     color: "#4A5568",
   },
@@ -414,11 +412,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#CBD5E0',
   },
-  resultText: {
-    fontSize: RFValue(16),
-    color: '#4A5568',
-    fontWeight: '600',
-  },
+
   footer: {
     alignItems: "center",
     padding: RFValue(16),
@@ -426,13 +420,45 @@ const styles = StyleSheet.create({
   },
   footerText: {
     fontSize: RFValue(14),
-    fontWeight: "bold",
+    fontWeight: "medium",
     marginBottom: RFValue(20),
     color: "#4A5568",
   },
   socialIcons: {
     flexDirection: "row",
     justifyContent: "center",
+  },
+  copiedOverlay: {
+    position: "absolute",
+    bottom: RFValue(20),
+    left: 0,
+    right: 0,
+    alignItems: "center",
+  },
+
+  resultsContainer: {
+    marginTop: RFValue(20),
+  },
+  resultLabel: {
+    fontSize: RFValue(16),
+    fontWeight: "500",
+    color: "#4A5568",
+    marginBottom: RFValue(5),
+  },
+  resultInputWrapper: {
+    backgroundColor: '#EDF2F7',
+    borderRadius: RFValue(8),
+    paddingHorizontal: RFValue(12),
+    marginBottom: RFValue(20),
+    height: RFValue(50),
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#CBD5E0',
+  },
+  resultText: {
+    fontSize: RFValue(16),
+    color: '#4A5568',
+    // fontWeight: '600',
   },
   copiedOverlay: {
     position: "absolute",
