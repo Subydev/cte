@@ -10,11 +10,13 @@ import {
   TextInput,
   Linking,
   Dimensions,
+  Pressable,
   Platform,
 } from "react-native";
 import {
   ButtonGroup,
   Icon,
+  Button ,
   SocialIcon,
   Divider,
   Input,
@@ -23,15 +25,15 @@ import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { ScrollView } from "react-native-gesture-handler";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { RFValue } from "react-native-responsive-fontsize";
-
+import { Link } from 'expo-router';
 const { width, height } = Dimensions.get("window");
 
-const App = () => {
+const Home = () => {
   const [state, setState] = useState({
-    selectedIndex: 1, // Default to Metric
+    selectedIndex: 1, 
     refTemp: 20,
     matTemp: 26.67,
-    cteval: 0.000023, // Set this to the CTE of aluminum (or your default material)
+    cteval: 0.000023, 
     lengthVal: 1,
     changeInLengthVal: 0,
     totalLengthVal: 0,
@@ -122,7 +124,7 @@ const App = () => {
   };
 
   const onPickerValueChange = (selectedValue) => {
-    const selectedMaterial = items.find(item => item.value === selectedValue) || items[0]; // Provide a default material
+    const selectedMaterial = items.find(item => item.value === selectedValue) || items[0]; 
     const cteValue = state.selectedIndex === 1 ? selectedMaterial.cteC : selectedMaterial.cteF;
     setState(prevState => ({
       ...prevState,
@@ -253,6 +255,16 @@ const App = () => {
                 <View style={styles.resultInputWrapper}>
                   <Text style={styles.resultText}>{state.correctionScaleFactor}</Text>
                 </View>
+
+                <Link href="/details" asChild>
+                <Pressable>
+              <Text>pressable part</Text>
+
+                </Pressable>
+              </Link>
+
+
+
                 {showCopiedOverlay && (
                   <View style={styles.copiedOverlay}>
                     <Text style={styles.copiedText}>Copied to clipboard!</Text>
@@ -475,4 +487,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default App;
+export default Home;

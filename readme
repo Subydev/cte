@@ -1,0 +1,2 @@
+npx expo export -p web 
+npx serve dist --single

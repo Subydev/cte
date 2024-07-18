@@ -5,6 +5,7 @@
     "version": "1.1.1",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
+    "scheme": "cteeschema",
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
@@ -37,12 +38,20 @@
       "versionCode": 11
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro"
+
     },
     "extra": {
       "eas": {
         "projectId": "2b1d9425-327a-4fad-82c2-02b638f87a36"
       }
-    }
+    },
+    "experiments": {
+      "baseUrl": "/cte"
+    },
+    "plugins": [
+      "expo-router"
+    ]
   }
 }
