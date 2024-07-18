@@ -256,12 +256,13 @@ const Home = () => {
                   <Text style={styles.resultText}>{state.correctionScaleFactor}</Text>
                 </View>
 
-                <Link href="/details" asChild>
-                <Pressable>
-              <Text>pressable part</Text>
-
-                </Pressable>
-              </Link>
+                <TouchableOpacity
+  style={styles.linkButton}
+  onPress={() => Linking.openURL('https://www.engineeringtoolbox.com/thermal-expansion-metals-d_859.html')}
+>
+  <Text style={styles.linkButtonText}>More Information</Text>
+  <Icon name="external-link" type="feather" size={RFValue(16)} color="white" style={styles.linkButtonIcon} />
+</TouchableOpacity>
 
 
 
@@ -278,7 +279,7 @@ const Home = () => {
                 style={styles.footerText}
                 onPress={() => Linking.openURL("http://verisurf.com")}
               >
-                VERISURF SOFTWARE, INC.
+                Verisurf Software, Inc.
               </Text>
               <View style={styles.socialIcons}>
                 <SocialIcon
@@ -314,6 +315,32 @@ const styles = StyleSheet.create({
   flex1: {
     flex: 1,
   },
+  linkButton: {
+    backgroundColor: '#007AFF',
+    padding: RFValue(12),
+    borderRadius: RFValue(8),
+    marginTop: RFValue(20),
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  linkButtonText: {
+    color: 'white',
+    fontWeight: 'bold',
+    fontSize: RFValue(16),
+    marginRight: RFValue(8),
+  },
+  linkButtonIcon: {
+    marginLeft: RFValue(8),
+  },
   container: {
     flex: 1,
     backgroundColor: "#F7FAFC",
@@ -321,7 +348,7 @@ const styles = StyleSheet.create({
   scrollContent: {
     flexGrow: 1,
     paddingVertical: RFValue(20),
-  },
+	},
   content: {
     flex: 1,
     padding: RFValue(20),
