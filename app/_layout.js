@@ -3,6 +3,8 @@ import { Stack } from 'expo-router';
 import { useState } from 'react';
 import { View } from 'react-native';
 import { ThemeContext } from './ThemeContext';
+import Head from 'expo-router/head';
+
 
 export default function Layout() {
   const [colorScheme, setColorScheme] = useState('light');
@@ -23,21 +25,48 @@ export default function Layout() {
 
   return (
     <ThemeContext.Provider value={{ colorScheme, toggleTheme }}>
+      <Head>
+        <title>Verisurf Software | 3D Measurement Solutions</title>
+        <meta
+          name="description"
+          content="Verisurf Software provides 3D measurement solutions for manufacturing. Our software integrates CAD, CAM, and CAI for precision measurement and quality inspection."
+        />
+        <meta
+          name="keywords"
+          content="Verisurf, 3D measurement, CAD, CAM, CAI, quality inspection, manufacturing software"
+        />
+        <meta name="author" content="Verisurf Software, Inc." />
+        <meta
+          property="og:title"
+          content="Verisurf Software | 3D Measurement Solutions"
+        />
+        <meta
+          property="og:description"
+          content="Precision 3D measurement solutions for manufacturing. Integrate CAD, CAM, and CAI for quality inspection and control."
+        />
+        <meta
+          property="og:image"
+          content="https://www.verisurf.com/path-to-your-logo.png"
+        />
+        <meta property="og:url" content="https://www.verisurf.com" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <link rel="canonical" href="https://www.verisurf.com" />
+      </Head>
       <View style={{ flex: 1, backgroundColor }}>
         <Stack>
           <Stack.Screen name="index" options={{ headerShown: false }} />
-          <Stack.Screen 
-            name="details" 
-            options={{ 
-              title: 'CTE Reference Table',
-              headerBackTitle: 'Back',
+          <Stack.Screen
+            name="details"
+            options={{
+              title: "CTE Reference Table",
+              headerBackTitle: "Back",
               headerStyle: headerStyle,
               headerTintColor: headerTintColor,
               headerTitleStyle: {
-                fontWeight: '500',
+                fontWeight: "500",
                 fontSize: 16,
               },
-            }} 
+            }}
           />
         </Stack>
       </View>

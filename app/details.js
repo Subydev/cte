@@ -1,4 +1,5 @@
 import React, { useContext } from 'react';
+import Head from 'expo-router/head';
 import { ThemeContext } from './ThemeContext';
 import { View, Text, ScrollView, StyleSheet, useColorScheme, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -58,6 +59,12 @@ const Details = () => {
   );
 
   return (
+    <>
+    <Head>
+      <title>CTE Reference Table | Verisurf Software</title>
+      <meta name="description" content="Comprehensive Coefficient of Thermal Expansion (CTE) reference table for various materials used in precision manufacturing and measurement." />
+      </Head>
+
     <View style={[styles.container, themeContainerStyle]}>
       <View style={styles.headerRow}>
         <Text style={[styles.headerCell, styles.nameCell, themeSubTextStyle]}>Material Name</Text>
@@ -73,6 +80,8 @@ const Details = () => {
         </View>
       </ScrollView>
     </View>
+    </>
+
   );
 };
 const styles = StyleSheet.create({
@@ -138,7 +147,7 @@ const styles = StyleSheet.create({
     color: "rgb(148 163 184)",
   },
   lightBorder: {
-    borderColor: 'rgba(0, 0, 0, 0.1)',
+    borderColor: '#e2e8f0',
   },
   darkBorder: {
     borderColor: 'rgba(255, 255, 255, 0.1)',

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef,useContext } from "react";
 import { ThemeContext } from './app/ThemeContext';
-
+import Head from 'expo-router/head';
 import {
   StyleSheet,
   Text,
@@ -647,7 +647,7 @@ borderColor:"rgb(51,65,85)"
     color: "rgb(148 163 184)",
   },
   lightSeparator:{
-    borderColor:"rgb(148,163,184)",
+    borderColor:"#e2e8f0",
   },
   lightContainer: {
     backgroundColor: "#e2e8f0",
