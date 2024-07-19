@@ -1,8 +1,9 @@
-import React, { useContext } from 'react';
+import React, { useState } from 'react';
 import { Stack } from 'expo-router';
-import { useState } from 'react';
 import { View } from 'react-native';
 import { ThemeContext } from './ThemeContext';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 export default function Layout() {
   const [colorScheme, setColorScheme] = useState('light');
@@ -11,36 +12,38 @@ export default function Layout() {
     setColorScheme(prev => prev === 'light' ? 'dark' : 'light');
   };
 
-  const headerStyle = colorScheme === 'light' 
-    ? { backgroundColor: '#e2e8f0' } 
-    : { backgroundColor: 'rgb(15,23,42)' };
-
-  const headerTintColor = colorScheme === 'light' 
-    ? 'rgb(15 23 42)' 
-    : 'white';
-
-  const backgroundColor = colorScheme === 'light' ? '#e2e8f0' : 'rgb(15,23,42)';
+  const backgroundColor = colorScheme === 'light' ? '#f1f5f9' : 'rgb(15,23,42)';
+  const headerStyle = {
+    backgroundColor: colorScheme === 'light' ? '#ffffff' : 'rgb(30,41,59)',
+  };
+  const headerTintColor = colorScheme === 'light' ? 'rgb(15,23,42)' : '#ffffff';
 
   return (
-    <ThemeContext.Provider value={{ colorScheme, toggleTheme }}>
-      <View style={{ flex: 1, backgroundColor }}>
-        <Stack>
-          <Stack.Screen name="index" options={{ headerShown: false }} />
-          <Stack.Screen 
-            name="details" 
-            options={{ 
-              title: 'CTE Reference Table',
-              headerBackTitle: 'Back',
-              headerStyle: headerStyle,
-              headerTintColor: headerTintColor,
-              headerTitleStyle: {
-                fontWeight: '500',
-                fontSize: 16,
-              },
-            }} 
-          />
-        </Stack>
-      </View>
-    </ThemeContext.Provider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <ThemeContext.Provider value={{ colorScheme, toggleTheme }}>
+        <SafeAreaProvider>
+          <View style={{ flex: 1, backgroundColor }}>
+            <Stack
+              screenOptions={{
+                headerStyle,
+                headerTintColor,
+                headerBackTitleVisible: false,
+                contentStyle: { backgroundColor },
+              }}
+            >
+              <Stack.Screen name="index" options={{ headerShown: false }} />
+              <Stack.Screen 
+                name="details" 
+                options={{ 
+                  title: 'CTE Reference Table',
+                  headerShadowVisible: false,
+                  
+                }} 
+              />
+            </Stack>
+          </View>
+        </SafeAreaProvider>
+      </ThemeContext.Provider>
+    </GestureHandlerRootView>
   );
 }

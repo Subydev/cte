@@ -321,9 +321,6 @@ const Home = () => {
     setToastVisible(true);
     setTimeout(() => setToastVisible(false), 2600);
   };
-  
-  
-  
 
   const UnitSwitch = ({ isMetric, onToggle }) => (
     <TouchableOpacity style={styles.unitSwitch} onPress={onToggle}>
@@ -429,8 +426,6 @@ const Home = () => {
       )}
     </View>
   );
-  
-
 
   const renderSection = (title, items) => (
     <>
@@ -647,10 +642,10 @@ borderColor:"rgb(51,65,85)"
     color: "rgb(148 163 184)",
   },
   lightSeparator:{
-    borderColor:"rgb(148,163,184)",
+    borderColor:"#e2e8f0",
   },
   lightContainer: {
-    backgroundColor: "#e2e8f0",
+    backgroundColor: "#f1f5f9",
   },
   
   lightCard: {
@@ -738,7 +733,7 @@ borderColor:"rgb(51,65,85)"
     flexDirection: "row",
   },
   modalItem: {
-    borderBottomColor: "#E2E8F0",
+    borderBottomColor: "#e2e8f0",
     borderBottomWidth: 1,
     paddingVertical: RFValue(12),
     width: "100%",
@@ -750,7 +745,7 @@ borderColor:"rgb(51,65,85)"
   },
 
   modalItemLight: {
-    borderBottomColor: "gb(148,163,184)",
+    borderBottomColor: "#e2e8f0",
 
   },
   modalItemText: {
