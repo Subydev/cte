@@ -1,4 +1,5 @@
 import React, { useContext } from 'react';
+import Head from 'expo-router/head';
 import { ThemeContext } from './ThemeContext';
 import { View, StyleSheet,Text } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
@@ -64,6 +65,12 @@ const Details = () => {
     </View>
   );
   return (
+    <>
+    <Head>
+      <title>CTE Reference Table | Verisurf Software</title>
+      <meta name="description" content="Comprehensive Coefficient of Thermal Expansion (CTE) reference table for various materials used in precision manufacturing and measurement." />
+      </Head>
+
     <View style={[styles.container, themeContainerStyle]}>
       <ScrollView
         contentContainerStyle={[
@@ -81,6 +88,8 @@ const Details = () => {
         </View>
       </ScrollView>
     </View>
+    </>
+
   );
 };
 

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef,useContext } from "react";
 import { ThemeContext } from './app/ThemeContext';
-
+import Head from 'expo-router/head';
 import {
   StyleSheet,
   Text,
