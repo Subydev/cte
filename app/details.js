@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useContext } from 'react';
+import { ThemeContext } from './ThemeContext';
 import { View, Text, ScrollView, StyleSheet, useColorScheme, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { RFValue } from "react-native-responsive-fontsize";
 
 const Details = () => {
-  const colorScheme = useColorScheme();
+  const { colorScheme } = useContext(ThemeContext);
   const themeTextStyle = colorScheme === "light" ? styles.lightThemeText : styles.darkThemeText;
   const themeSubTextStyle = colorScheme === "light" ? styles.lightThemeSubText : styles.darkThemeSubText;
   const themeContainerStyle = colorScheme === "light" ? styles.lightContainer : styles.darkContainer;

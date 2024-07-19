@@ -1,4 +1,6 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef,useContext } from "react";
+import { ThemeContext } from './app/ThemeContext';
+
 import {
   StyleSheet,
   Text,
@@ -8,6 +10,7 @@ import {
   TextInput,
   Linking,
   useColorScheme,
+  Platform,
   Dimensions,
   Animated,
   Easing,
@@ -31,8 +34,10 @@ const { width, height } = Dimensions.get("window");
 
 const Home = () => {
   const router = useRouter();
-  const colorScheme = useColorScheme();
   const insets = useSafeAreaInsets();
+  const deviceColorScheme = useColorScheme();
+  const { colorScheme, toggleTheme } = useContext(ThemeContext);
+
   const inputRefs = useRef({});
   const [state, setState] = useState({
     selectedIndex: 1,
@@ -47,23 +52,23 @@ const Home = () => {
     cteCo: "mm/mm °C",
   });
 
-  const themeTextStyle =
-    colorScheme === "light" ? styles.lightThemeText : styles.darkThemeText;
-    const themeSubTextStyle =
-    colorScheme === "light" ? styles.lightThemeSubText : styles.darkThemeSubText;
-  const themeContainerStyle =
-    colorScheme === "light" ? styles.lightContainer : styles.darkContainer;
-    const themeCardStyle =
-    colorScheme === "light" ? styles.lightCard : styles.darkCard;
-    const themeSeperatorStyle =
-    colorScheme === "light" ? styles.lightSeparator : styles.darkSeperator;
-    const modalItemStyle =
-    colorScheme === "light" ? styles.modalItemLight : styles.modalItemDark;
+  const [manualTheme, setManualTheme] = Platform.OS === 'web' ? useState("light") : useState(null); // Default to light theme on web
+  // const colorScheme = manualTheme !== null ? manualTheme : deviceColorScheme;
+
+  const themeTextStyle = colorScheme === "light" ? styles.lightThemeText : styles.darkThemeText;
+  const themeSubTextStyle = colorScheme === "light" ? styles.lightThemeSubText : styles.darkThemeSubText;
+  const themeContainerStyle = colorScheme === "light" ? styles.lightContainer : styles.darkContainer;
+  const themeCardStyle = colorScheme === "light" ? styles.lightCard : styles.darkCard;
+  const themeSeperatorStyle = colorScheme === "light" ? styles.lightSeparator : styles.darkSeperator;
+  const modalItemStyle = colorScheme === "light" ? styles.modalItemLight : styles.modalItemDark;
 
   const [modalVisible, setModalVisible] = useState(false);
   const [value, setValue] = useState("aluminum");
   const [showCopiedOverlay, setShowCopiedOverlay] = useState(false);
   const [toastVisible, setToastVisible] = useState(false);
+  const [toastPosition, setToastPosition] = useState({ x: 0, y: 0 });  
+
+  
   const [items, setItems] = useState([
     { label: "Custom Material", value: "custom", cteC: 0.0, cteF: 0.0 },
     {
@@ -157,12 +162,16 @@ const Home = () => {
     { label: "Tungsten", value: "tungsten", cteC: 0.000004, cteF: 0.0000024 },
     { label: "Zinc", value: "zinc", cteC: 0.00003, cteF: 0.0000165 },
   ]);
-  const ResourceLink = ({ text, LeftIcon, onPress, colorScheme }) => (
+  const ResourceLink = ({ text, LeftIcon, onPress, colorScheme, onIconPress }) => (
     <TouchableOpacity style={styles.resourceButton} onPress={onPress}>
       <View style={styles.resourceLeftContent}>
-        <LeftIcon width={RFValue(18)} height={RFValue(18)} fill={colorScheme === "light" ? "rgb(15 23 42)" : "rgb(148 163 184)"} />
-        <Text style={[styles.resourceButtonText, themeTextStyle]}>
-  
+        <TouchableOpacity onPress={onIconPress} style={styles.iconTouchable}>
+          <LeftIcon width={RFValue(18)} height={RFValue(18)} fill={colorScheme === "light" ? "rgb(15 23 42)" : "rgb(148 163 184)"} />
+        </TouchableOpacity>
+        <Text style={[
+          styles.resourceButtonText, 
+          colorScheme === "light" ? styles.lightThemeText : styles.darkThemeText
+        ]}>
           {text}
         </Text>
       </View>
@@ -174,6 +183,11 @@ const Home = () => {
       />
     </TouchableOpacity>
   );
+
+  const handleToggleTheme = () => {
+    toggleTheme();
+  };
+
   const updateResults = () => {
     const { lengthVal, cteval, matTemp, refTemp } = state;
     const tempDifference = matTemp - refTemp;
@@ -194,14 +208,13 @@ const Home = () => {
   };
 
   const ToastNotification = ({ visible, message }) => {
-    const insets = useSafeAreaInsets();
     const translateY = useRef(new Animated.Value(-100)).current;
-
+  
     useEffect(() => {
       if (visible) {
         Animated.sequence([
           Animated.timing(translateY, {
-            toValue: insets.top,
+            toValue: 0,
             duration: 300,
             useNativeDriver: true,
             easing: Easing.out(Easing.back(1.5)),
@@ -215,23 +228,26 @@ const Home = () => {
           }),
         ]).start();
       }
-    }, [visible, insets.top]);
-
+    }, [visible]);
+  
     if (!visible) return null;
-
+  
     return (
       <Animated.View
         style={[
           styles.toastContainer,
           {
             transform: [{ translateY }],
-          }, themeContainerStyle
+          },themeCardStyle
         ]}
       >
-        <Text style={[styles.copiedText, themeTextStyle]}>{message}</Text>
+        <Text style={[styles.toastText, themeSubTextStyle]}>{message}</Text>
       </Animated.View>
     );
   };
+  
+  
+  
   const renderResourceLink = (text, leftIcon, onPress, style = {}) => (
     <TouchableOpacity style={styles.resourceButton} onPress={onPress}>
       <View style={styles.resourceLeftContent}>
@@ -293,7 +309,7 @@ const Home = () => {
       ...prevState,
       cteval: cteValue,
     }));
-    setValue(selectedValue); // Make sure this line is present
+    setValue(selectedValue); 
   };
 
   useEffect(() => {
@@ -305,6 +321,10 @@ const Home = () => {
     setToastVisible(true);
     setTimeout(() => setToastVisible(false), 2600);
   };
+  
+  
+  
+
   const UnitSwitch = ({ isMetric, onToggle }) => (
     <TouchableOpacity style={styles.unitSwitch} onPress={onToggle}>
       <View style={styles.unitSwitchContent}>
@@ -333,6 +353,7 @@ const Home = () => {
       </View>
     </TouchableOpacity>
   );
+
   const renderField = (item) => (
     <View>
       {item.type === "picker" ? (
@@ -341,7 +362,6 @@ const Home = () => {
             name={item.icon}
             size={RFValue(16)}
             color={colorScheme === "light" ? "rgb(15 23 42)" : "rgb(148 163 184)"}
-
           />
           <Text style={[styles.pickerButtonText, themeTextStyle]}>{item.text}</Text>
           <Icon
@@ -356,9 +376,10 @@ const Home = () => {
       ) : (
         <TouchableOpacity
           style={styles.fieldContainer}
-          onPress={() => {
+          onPress={(e) => {
+            const position = { x: e.nativeEvent.pageX, y: e.nativeEvent.pageY };
             if (item.type === "result") {
-              copyToClipboard(item.value);
+              copyToClipboard(item.value, position);
             } else if (inputRefs.current[item.key]) {
               inputRefs.current[item.key].focus();
             }
@@ -371,7 +392,6 @@ const Home = () => {
                   name={item.icon}
                   size={RFValue(20)}
                   color={colorScheme === "light" ? "rgb(15 23 42)" : "rgb(148 163 184)"}
-
                   style={styles.icon}
                 />
               )}
@@ -401,8 +421,6 @@ const Home = () => {
                   type="feather"
                   size={RFValue(16)}
                   color={colorScheme === "light" ? "#64748b" : "rgb(148 163 184)"}
-
-
                 />
               )}
             </View>
@@ -411,6 +429,8 @@ const Home = () => {
       )}
     </View>
   );
+  
+
 
   const renderSection = (title, items) => (
     <>
@@ -540,6 +560,7 @@ const Home = () => {
                         LeftIcon={VerisurfIcon}
                         onPress={() => Linking.openURL("https://www.verisurf.com/about-verisurf/")}
                         colorScheme={colorScheme}
+                        onIconPress={toggleTheme}
                       />
                   },
                 ])}
@@ -554,9 +575,9 @@ const Home = () => {
             </ScrollView>
           </SafeAreaView>
           <ToastNotification
-          style={styles.copiedOverlay}
             visible={toastVisible}
             message="Copied to clipboard!"
+            position={toastPosition}
           />
 
           <Modal
@@ -626,7 +647,7 @@ borderColor:"rgb(51,65,85)"
     color: "rgb(148 163 184)",
   },
   lightSeparator:{
-    borderColor:"#e2e8f0",
+    borderColor:"rgb(148,163,184)",
   },
   lightContainer: {
     backgroundColor: "#e2e8f0",
@@ -643,24 +664,20 @@ borderColor:"rgb(51,65,85)"
     borderColor:"rgb(100 116 139",
 
   },
-
   toastContainer: {
     position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    // backgroundColor: "rgba(0, 0, 0, 0.8)",
+    top: '50%',
+    left: '50%',
+    transform: [{ translateX: -'50%' }, { translateY: -'50%' }],
     paddingVertical: RFValue(12),
     paddingHorizontal: RFValue(16),
-    alignItems: "center",
-    justifyContent: "center",
+    backgroundColor: "rgba(30, 41, 59, 0.4)",
     zIndex: 9999,
-    // backgroundColor: "rgba(30,41,59,0.3)",
-
+    borderRadius: RFValue(8),
   },
   toastText: {
-    // color: "white",
-    fontSize: RFValue(17),
+    color: "white",
+    fontSize: RFValue(14),
     fontWeight: "600",
   },
   content: {
@@ -687,6 +704,10 @@ borderColor:"rgb(51,65,85)"
     paddingLeft: RFValue(4),
     paddingRight: RFValue(4),
     paddingVertical: RFValue(6),
+  },
+  iconTouchable: {
+    // padding: RFValue(2), 
+    marginRight: RFValue(12), 
   },
   fieldContent: {
     alignItems: "center",
@@ -771,13 +792,13 @@ borderColor:"rgb(51,65,85)"
     flexDirection: "row",
     justifyContent: "space-between",
     marginRight: RFValue(4),
-    paddingHorizontal: RFValue(16),
+    paddingHorizontal: RFValue(15),
     paddingVertical: RFValue(8),
   },
   resourceButtonText: {
     fontSize: RFValue(12),
     fontWeight: "500",
-    marginLeft: RFValue(14),
+    marginLeft: RFValue(2),
   },
   unitSwitch: {
     paddingVertical: RFValue(6),
@@ -826,7 +847,7 @@ borderColor:"rgb(51,65,85)"
     transform: [{ translateX: RFValue(20) }],
   },
   resourceIcon: {
-    marginRight: RFValue(14),
+    marginRight: RFValue(15),
   },
   resourceLeftContent: {
     alignItems: "center",
