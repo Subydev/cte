@@ -1,6 +1,4 @@
-import React, { useState, useEffect } from "react";
-import { StatusBar } from "expo-status-bar";
-import * as Clipboard from "expo-clipboard";
+import React, { useState, useEffect, useRef } from "react";
 import {
   StyleSheet,
   Text,
@@ -10,30 +8,29 @@ import {
   TextInput,
   Linking,
   Dimensions,
-  Pressable,
-  Platform,
 } from "react-native";
 import {
   ButtonGroup,
   Icon,
-  Button ,
   SocialIcon,
   Divider,
-  Input,
 } from "@rneui/themed";
+import { MaterialCommunityIcons } from '@expo/vector-icons'; // or your preferred icon library
+
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { ScrollView } from "react-native-gesture-handler";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { RFValue } from "react-native-responsive-fontsize";
-import { Link } from 'expo-router';
+
 const { width, height } = Dimensions.get("window");
 
 const Home = () => {
+  const inputRefs = useRef({});
   const [state, setState] = useState({
-    selectedIndex: 1, 
+    selectedIndex: 1,
     refTemp: 20,
     matTemp: 26.67,
-    cteval: 0.000023, 
+    cteval: 0.000023,
     lengthVal: 1,
     changeInLengthVal: 0,
     totalLengthVal: 0,
@@ -42,7 +39,7 @@ const Home = () => {
     cteCo: "mm/mm °C",
   });
   const [modalVisible, setModalVisible] = useState(false);
-  const [value, setValue] = useState("aluminum"); // Set a default material
+  const [value, setValue] = useState("aluminum");
   const [showCopiedOverlay, setShowCopiedOverlay] = useState(false);
   const [items, setItems] = useState([
     { label: "Custom Material", value: "custom", cteC: 0.000000, cteF: 0.000000 },
@@ -83,10 +80,10 @@ const Home = () => {
     const tempDifference = matTemp - refTemp;
     const changeInLength = (lengthVal * cteval * tempDifference).toFixed(8);
     const totalLength = (parseFloat(changeInLength) + parseFloat(lengthVal)).toFixed(8);
-    
+
     // Calculate the Correction Scale Factor (CSF)
     const csf = (parseFloat(lengthVal) / parseFloat(totalLength)).toFixed(8);
-  
+
     setState((prevState) => ({
       ...prevState,
       changeInLengthVal: changeInLength,
@@ -104,10 +101,10 @@ const Home = () => {
         const newLengthVal = isMetric
           ? (prevState.lengthVal * 25.4).toFixed(4)
           : (prevState.lengthVal / 25.4).toFixed(4);
-        
+
         const currentMaterial = items.find(item => item.value === value) || items[0]; // Provide a default material
         const newCteVal = isMetric ? currentMaterial.cteC : currentMaterial.cteF;
-  
+
         return {
           ...prevState,
           tempUnits: isMetric ? "°C" : "°F",
@@ -124,7 +121,7 @@ const Home = () => {
   };
 
   const onPickerValueChange = (selectedValue) => {
-    const selectedMaterial = items.find(item => item.value === selectedValue) || items[0]; 
+    const selectedMaterial = items.find(item => item.value === selectedValue) || items[0];
     const cteValue = state.selectedIndex === 1 ? selectedMaterial.cteC : selectedMaterial.cteF;
     setState(prevState => ({
       ...prevState,
@@ -142,16 +139,78 @@ const Home = () => {
     setTimeout(() => setShowCopiedOverlay(false), 2000);
   };
 
-  const renderInputField = (label, value, onChangeText, unit) => (
-    <View style={styles.inputContainer}>
-      <Text style={styles.label}>{label}:</Text>
+  const renderResultsCard = () => (
+    <View style={styles.card}>
+      <View style={styles.resultItem}>
+        {renderResultField(
+          'changeInLengthVal',
+          state.changeInLengthVal,
+          state.measUnits,
+          "Change in Length",
+          "arrow-expand-horizontal"
+        )}
+      </View>
+      <View style={[styles.resultItem, styles.middleResultItem]}>
+        {renderResultField(
+          'totalLengthVal',
+          state.totalLengthVal,
+          state.measUnits,
+          "Total Length",
+          "ruler-square"
+        )}
+      </View>
+      <View style={styles.resultItem}>
+        {renderResultField(
+          'correctionScaleFactor',
+          state.correctionScaleFactor,
+          "",
+          "Correction Scale Factor",
+          "scale-balance"
+        )}
+      </View>
+    </View>
+  );
+  const renderInputField = (key, value, onChangeText, unit, subText, icon, isEditable = true) => (
+    <TouchableOpacity 
+      style={styles.card}
+      onPress={() => {
+        if (isEditable && inputRefs.current[key]) {
+          inputRefs.current[key].focus();
+        }
+      }}
+    >
       <View style={styles.inputWrapper}>
-        <TextInput
-          style={styles.input}
-          value={String(value)}
-          onChangeText={onChangeText}
-          keyboardType="numeric"
-        />
+        <View style={styles.leftContent}>
+          {icon && <MaterialCommunityIcons name={icon} size={RFValue(20)} color="#4A5568" style={styles.icon} />}
+          <View>
+            <TextInput
+              ref={ref => inputRefs.current[key] = ref}
+              style={styles.input}
+              value={String(value)}
+              onChangeText={onChangeText}
+              keyboardType="numeric"
+              editable={isEditable}
+            />
+            {subText && <Text style={styles.subText}>{subText}</Text>}
+          </View>
+        </View>
+        <View style={styles.rightContent}>
+          <Text style={styles.unit}>{unit}</Text>
+          {isEditable && <Icon name="chevron-right" type="feather" size={RFValue(16)} color='#A0AEC0' />}
+        </View>
+      </View>
+    </TouchableOpacity>
+  );
+  const renderResultField = (key, value, unit, subText, icon) => (
+    <View style={styles.resultField}>
+      <View style={styles.leftContent}>
+        {icon && <MaterialCommunityIcons name={icon} size={RFValue(20)} color="#4A5568" style={styles.icon} />}
+        <View>
+          <Text style={styles.resultValue}>{value}</Text>
+          <Text style={styles.subText}>{subText}</Text>
+        </View>
+      </View>
+      <View style={styles.rightContent}>
         <Text style={styles.unit}>{unit}</Text>
       </View>
     </View>
@@ -160,120 +219,87 @@ const Home = () => {
   return (
     <GestureHandlerRootView style={styles.flex1}>
       <SafeAreaProvider>
-        <SafeAreaView style={styles.container}>
-          <ScrollView contentContainerStyle={styles.scrollContent}>
-            <View style={styles.content}>
-              <ButtonGroup
-                onPress={updateIndex}
-                selectedIndex={state.selectedIndex}
-                buttons={["Imperial", "Metric"]}
-                containerStyle={styles.buttonGroup}
-                textStyle={styles.buttonText}
-                selectedButtonStyle={styles.selectedButton}
-                innerBorderStyle={styles.innerBorder}
-              />
+      <SafeAreaView style={[styles.container, { backgroundColor: 'transparent' }]}>
 
-              <Divider style={styles.divider} />
-
-              <View style={styles.pickerContainer}>
-                <Text style={styles.label}>Material:</Text>
-                <TouchableOpacity
-                  style={styles.pickerButton}
-                  onPress={() => setModalVisible(true)}
-                >
-                  <Text style={styles.pickerButtonText}>
-                    {items.find((item) => item.value === value)?.label ||
-                      "Select a material"}
-                  </Text>
-                </TouchableOpacity>
-              </View>
-
-              <Modal
-                animationType="slide"
-                transparent={true}
-                visible={modalVisible}
-                onRequestClose={() => setModalVisible(false)}
-              >
-                <View style={styles.modalView}>
-                  <ScrollView style={styles.modalScroll}>
-                    {items.map((item) => (
-                      <TouchableOpacity
-                        key={item.value}
-                        style={styles.modalItem}
-                        onPress={() => {
-                          setValue(item.value);
-                          onPickerValueChange(item.value);
-                          setModalVisible(false);
-                        }}
-                      >
-                        <Text style={styles.modalItemText}>{item.label}</Text>
-                      </TouchableOpacity>
-                    ))}
-                  </ScrollView>
-                </View>
-              </Modal>
-
-              <Divider style={styles.divider} />
-
-              {renderInputField(
-                "CTE",
-                state.cteval,
-                (cteval) => setState({ ...state, cteval }),
-                state.cteCo
-              )}
-              {renderInputField(
-                "Length",
-                state.lengthVal,
-                (lengthVal) => setState({ ...state, lengthVal }),
-                state.measUnits
-              )}
-              {renderInputField(
-                "Ref Temp",
-                state.refTemp,
-                (refTemp) => setState({ ...state, refTemp }),
-                state.tempUnits
-              )}
-              {renderInputField(
-                "Mat Temp",
-                state.matTemp,
-                (matTemp) => setState({ ...state, matTemp }),
-                state.tempUnits
-              )}
-
-              <View style={styles.resultsContainer}>
-                <Text style={styles.resultLabel}>Change in Length:</Text>
-                <View style={styles.resultInputWrapper}>
-                  <Text style={styles.resultText}>{state.changeInLengthVal}</Text>
-                </View>
-                <Text style={styles.resultLabel}>Total Length:</Text>
-                <TouchableOpacity onPress={() => copyToClipboard(String(state.totalLengthVal))}>
-                  <View style={styles.resultInputWrapper}>
-                    <Text style={styles.resultText}>{state.totalLengthVal}</Text>
-                  </View>
-                </TouchableOpacity>
-                <Text style={styles.resultLabel}>Correction Scale Factor:</Text>
-                <View style={styles.resultInputWrapper}>
-                  <Text style={styles.resultText}>{state.correctionScaleFactor}</Text>
-                </View>
-
-                <TouchableOpacity
-  style={styles.linkButton}
-  onPress={() => Linking.openURL('https://www.engineeringtoolbox.com/thermal-expansion-metals-d_859.html')}
+<ScrollView contentContainerStyle={styles.scrollContent}>
+            <ButtonGroup
+              onPress={updateIndex}
+              selectedIndex={state.selectedIndex}
+              buttons={["Imperial", "Metric"]}
+              containerStyle={styles.buttonGroup}
+              textStyle={styles.buttonText}
+              selectedButtonStyle={styles.selectedButton}
+              innerBorderStyle={styles.innerBorder}
+            />
+  
+  <View style={styles.content}>
+  <Text style={styles.sectionTitle}>MATERIALS</Text>
+  <View style={styles.card}>
+  <TouchableOpacity
+  style={[styles.pickerButton]}
+  onPress={() => setModalVisible(true)}
 >
-  <Text style={styles.linkButtonText}>More Information</Text>
-  <Icon name="external-link" type="feather" size={RFValue(16)} color="white" style={styles.linkButtonIcon} />
+  <MaterialCommunityIcons name="material-ui" size={RFValue(20)} color="#4A5568" />
+  <Text style={styles.pickerButtonText}>
+    {items.find((item) => item.value === value)?.label || "Select a material"}
+  </Text>
+  <Icon name="chevron-right" type="feather" size={RFValue(16)} color='#A0AEC0' />
 </TouchableOpacity>
+  </View>
+{renderInputField(
+  'cteval',
+  state.cteval,
+  (cteval) => setState({ ...state, cteval }),
+  state.cteCo,
+  "Coefficient of Thermal Expansion",
+  "alpha"
+)}
 
+<Text style={styles.sectionTitle}>TEMPERATURES</Text>
+{renderInputField(
+  'lengthVal',
+  state.lengthVal,
+  (lengthVal) => setState({ ...state, lengthVal }),
+  state.measUnits,
+  "Length",
+  "ruler"
+)}
+{renderInputField(
+  'refTemp',
+  state.refTemp,
+  (refTemp) => setState({ ...state, refTemp }),
+  state.tempUnits,
+  "Reference Temperature",
+  "thermometer"
+)}
+{renderInputField(
+  'matTemp',
+  state.matTemp,
+  (matTemp) => setState({ ...state, matTemp }),
+  state.tempUnits,
+  "Material Temperature",
+  "thermometer-lines"
+)}
 
-
-                {showCopiedOverlay && (
-                  <View style={styles.copiedOverlay}>
-                    <Text style={styles.copiedText}>Copied to clipboard!</Text>
-                  </View>
-                )}
+<Text style={styles.sectionTitle}>RESULTS</Text>
+{renderResultsCard()}
+              <View style={styles.card}>
+                <TouchableOpacity
+                  style={styles.linkButton}
+                  onPress={() => Linking.openURL('https://www.engineeringtoolbox.com/thermal-expansion-metals-d_859.html')}
+                >
+                  <Text style={styles.linkButtonText}>More Information</Text>
+                  <Icon name="external-link" type="feather" size={RFValue(16)} color="white" style={styles.linkButtonIcon} />
+                </TouchableOpacity>
               </View>
+  
+              {showCopiedOverlay && (
+                <View style={styles.copiedOverlay}>
+                  <Text style={styles.copiedText}>Copied to clipboard!</Text>
+                </View>
+              )}
             </View>
-
+  
             <View style={styles.footer}>
               <Text
                 style={styles.footerText}
@@ -305,6 +331,31 @@ const Home = () => {
               </View>
             </View>
           </ScrollView>
+  
+          <Modal
+            animationType="slide"
+            transparent={true}
+            visible={modalVisible}
+            onRequestClose={() => setModalVisible(false)}
+          >
+            <View style={styles.modalView}>
+              <ScrollView style={styles.modalScroll}>
+                {items.map((item) => (
+                  <TouchableOpacity
+                    key={item.value}
+                    style={styles.modalItem}
+                    onPress={() => {
+                      setValue(item.value);
+                      onPickerValueChange(item.value);
+                      setModalVisible(false);
+                    }}
+                  >
+                    <Text style={styles.modalItemText}>{item.label}</Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </View>
+          </Modal>
         </SafeAreaView>
       </SafeAreaProvider>
     </GestureHandlerRootView>
@@ -312,17 +363,128 @@ const Home = () => {
 };
 
 const styles = StyleSheet.create({
+  buttonGroup: {
+    height: RFValue(36),
+    borderRadius: RFValue(18),
+    borderColor: '#007AFF',
+    backgroundColor: '#F0F0F0',
+  },
+  buttonText: {
+    fontSize: RFValue(14),
+    fontWeight: '500',
+  },
+  resultItem: {
+    paddingVertical: RFValue(6),
+  },
+  middleResultItem: {
+    borderTopWidth: 1,
+    borderBottomWidth: 1,
+    borderColor: '#E2E8F0',
+    paddingVertical: RFValue(8),
+  },
+  resultField: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  resultValue: {
+    fontSize: RFValue(14),
+    color: '#4A5568',
+    fontWeight: '500',
+  },
+  card: {
+    backgroundColor: 'white',
+    borderRadius: RFValue(6),
+    // elevation: 2,
+    marginBottom: RFValue(6),
+    paddingLeft:RFValue(10),
+    // padding: RFValue(4), // Reduce from 12 to 8
+    // shadowColor: "#000",
+    // shadowOffset: {
+    //   width: 0,
+    //   height: 1,
+    // },
+    // shadowOpacity: 0.2,
+    // shadowRadius: 1.41,
+  },
+  container: {
+    backgroundColor: "#F7FAFC",
+    flex: 1,
+  },
+  content: {
+    flex: 1,
+    padding: RFValue(12),
+  },
+  copiedOverlay: {
+    alignItems: "center",
+    bottom: RFValue(16),
+    left: 0,
+    position: "absolute",
+    right: 0,
+  },
+  copiedText: {
+    backgroundColor: "rgba(0,0,0,0.7)",
+    borderRadius: RFValue(4),
+    color: "white",
+    padding: RFValue(8),
+  },
   flex1: {
     flex: 1,
   },
-  linkButton: {
-    backgroundColor: '#007AFF',
+  footer: {
+    alignItems: "center",
+    backgroundColor: "#EDF2F7",
     padding: RFValue(12),
-    borderRadius: RFValue(8),
-    marginTop: RFValue(20),
+  },
+  footerText: {
+    color: "#4A5568",
+    fontSize: RFValue(12),
+    fontWeight: "medium",
+    marginBottom: RFValue(16),
+  },
+  innerBorder: {
+    width: 0,
+  },
+  input: {
+    fontSize: RFValue(14), 
+    lineHeight: RFValue(16), 
+    fontWeight: '500',
+
+        color: '#4A5568',
+    outlineStyle: 'none',
+    padding: 0,
+  },
+  inputContainer: {
+  },
+  inputContainerWithBorder: {
+    borderBottomWidth: 1,
+    borderColor: '#CBD5E0',
+  },
+  inputWrapper: {
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: RFValue(4), // Add this line to reduce vertical space
+
+  },
+  leftContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  rightContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  linkButton: {
+    alignItems: 'center',
+    backgroundColor: '#007AFF',
+    borderRadius: RFValue(6),
+    elevation: 5,
     flexDirection: 'row',
     justifyContent: 'center',
+    marginTop: RFValue(16),
+    padding: RFValue(10),
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
@@ -330,188 +492,103 @@ const styles = StyleSheet.create({
     },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
-    elevation: 5,
+  },
+  icon: {
+    marginRight: RFValue(8),
+  },
+
+  linkButtonIcon: {
+    marginLeft: RFValue(6),
   },
   linkButtonText: {
     color: 'white',
+    fontSize: RFValue(12),
     fontWeight: 'bold',
-    fontSize: RFValue(16),
-    marginRight: RFValue(8),
-  },
-  linkButtonIcon: {
-    marginLeft: RFValue(8),
-  },
-  container: {
-    flex: 1,
-    backgroundColor: "#F7FAFC",
-  },
-  scrollContent: {
-    flexGrow: 1,
-    paddingVertical: RFValue(20),
-	},
-  content: {
-    flex: 1,
-    padding: RFValue(20),
-  },
-  buttonGroup: {
-    height: RFValue(50),
-    marginBottom: RFValue(20),
-    borderRadius: RFValue(10),
-    borderColor: "#4A5568",
-  },
-  buttonText: {
-    fontSize: RFValue(16),
-    fontWeight: "600",
-    color: "#4A5568",
-  },
-  selectedButton: {
-    backgroundColor: "#4A5568",
-  },
-  innerBorder: {
-    width: 0,
-  },
-  divider: {
-    backgroundColor: "#CBD5E0",
-    height: 1,
-    marginVertical: RFValue(20),
-  },
-  pickerContainer: {
-    marginBottom: RFValue(20),
-  },
-  pickerButton: {
-    backgroundColor: "#EDF2F7",
-    padding: RFValue(12),
-    borderRadius: RFValue(8),
-    borderWidth: 1,
-    borderColor: "#CBD5E0",
-  },
-  pickerButtonText: {
-    fontSize: RFValue(16),
-    color: "#4A5568",
-  },
-  modalView: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "rgba(0,0,0,0.5)",
-  },
-  modalScroll: {
-    width: width * 0.95,
-    maxHeight: height * 0.8,
-    backgroundColor: "white",
-    borderRadius: RFValue(20),
-    padding: RFValue(20),
+    marginRight: RFValue(6),
   },
   modalItem: {
-    paddingVertical: RFValue(15),
-    borderBottomWidth: 1,
     borderBottomColor: "#E2E8F0",
+    borderBottomWidth: 1,
+    paddingVertical: RFValue(12),
     width: "100%",
   },
   modalItemText: {
-    fontSize: RFValue(16),
     color: "#4A5568",
+    fontSize: RFValue(12),
   },
-  inputContainer: {
-    marginBottom: RFValue(16),
+  modalScroll: {
+    backgroundColor: "white",
+    borderRadius: RFValue(16),
+    maxHeight: height * 0.8,
+    padding: RFValue(16),
+    width: width * 0.95,
   },
-  label: {
-    fontSize: RFValue(16),
-    fontWeight: "500",
-    marginBottom: RFValue(5),
-    color: "#4A5568",
+  modalView: {
+    alignItems: "center",
+    backgroundColor: "rgba(0,0,0,0.5)",
+    flex: 1,
+    justifyContent: "center",
   },
-  inputWrapper: {
+  pickerButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#EDF2F7',
-    borderRadius: RFValue(8),
-    paddingHorizontal: RFValue(12),
-    borderWidth: 1,
-    borderColor: '#CBD5E0',
-    height: RFValue(50),
+    justifyContent: 'space-between',
+    paddingVertical: RFValue(8),
+    // padding: 0,
+    // paddingLeft:RFValue(8)
   },
-  input: {
+  pickerButtonText: {
     flex: 1,
-    fontSize: RFValue(16),
-    color: '#4A5568',
-  },
-  unit: {
-    marginLeft: RFValue(10),
-    fontSize: RFValue(16),
-    color: '#718096',
-  },
-  resultInputWrapper: {
-    backgroundColor: '#EDF2F7',
-    borderRadius: RFValue(8),
-    paddingHorizontal: RFValue(12),
-    marginBottom: RFValue(20),
-    height: RFValue(50),
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: '#CBD5E0',
-  },
-
-  footer: {
-    alignItems: "center",
-    padding: RFValue(16),
-    backgroundColor: "#EDF2F7",
-  },
-  footerText: {
-    fontSize: RFValue(14),
-    fontWeight: "medium",
-    marginBottom: RFValue(20),
     color: "#4A5568",
+    fontSize: RFValue(14), 
+    lineHeight: RFValue(16), 
+    fontWeight: '500',
+    marginLeft: RFValue(8),
+  },
+  pickerContainer: {
+    marginBottom: RFValue(10),
+    width: '100%',
+  },
+  resultsContainer: {
+    marginTop: RFValue(16),
+  },
+  scrollContent: {
+    flexGrow: 1,
+    paddingVertical: RFValue(16),
+  },
+  touchableCard: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  sectionTitle: {
+    fontSize: RFValue(12),
+    fontWeight: '400',
+    color: '#718096',
+    paddingVertical: RFValue(8),
+    marginBottom: RFValue(6),
+  },
+  selectedButton: {
+    backgroundColor: '#007AFF',
   },
   socialIcons: {
     flexDirection: "row",
     justifyContent: "center",
   },
-  copiedOverlay: {
-    position: "absolute",
-    bottom: RFValue(20),
-    left: 0,
-    right: 0,
-    alignItems: "center",
+  subText: {
+    fontSize: RFValue(8),
+    color: '#A0AEC0',
+    marginTop: RFValue(2),
   },
-
-  resultsContainer: {
-    marginTop: RFValue(20),
+  touchableInput: {
+    alignItems: 'center',
+    flex: 1,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
   },
-  resultLabel: {
-    fontSize: RFValue(16),
-    fontWeight: "500",
-    color: "#4A5568",
-    marginBottom: RFValue(5),
-  },
-  resultInputWrapper: {
-    backgroundColor: '#EDF2F7',
-    borderRadius: RFValue(8),
-    paddingHorizontal: RFValue(12),
-    marginBottom: RFValue(20),
-    height: RFValue(50),
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: '#CBD5E0',
-  },
-  resultText: {
-    fontSize: RFValue(16),
-    color: '#4A5568',
-    // fontWeight: '600',
-  },
-  copiedOverlay: {
-    position: "absolute",
-    bottom: RFValue(20),
-    left: 0,
-    right: 0,
-    alignItems: "center",
-  },
-  copiedText: {
-    backgroundColor: "rgba(0,0,0,0.7)",
-    color: "white",
-    padding: RFValue(10),
-    borderRadius: RFValue(5),
+  unit: {
+    fontSize: RFValue(12),
+    color: '#718096',
+    marginRight: RFValue(4),
   },
 });
-
 export default Home;
