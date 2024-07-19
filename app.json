@@ -21,7 +21,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.verisurf.ctecalc",
-      "buildNumber": "1.1.1",
+      "buildNumber": "1.1.2",
       "infoPlist": {
         "NSCameraUsageDescription": "NOT USED",
         "NSCalendarsUsageDescription": "NOT USED",
@@ -36,7 +36,7 @@
     },
     "android": {
       "package": "com.verisurfsoftware.ctecalc",
-      "versionCode": 11
+      "versionCode": 12
     },
     "web": {
       "favicon": "./assets/favicon.png",

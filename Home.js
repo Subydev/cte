@@ -441,7 +441,6 @@ const Home = () => {
     </>
   );
   return (
-    <GestureHandlerRootView style={styles.flex1}>
       <SafeAreaProvider>
         <View style={[styles.container, themeContainerStyle]}>
           <SafeAreaView style={styles.safeArea}>
@@ -601,7 +600,6 @@ const Home = () => {
           </Modal>
         </View>
       </SafeAreaProvider>
-    </GestureHandlerRootView>
   );
 };
 

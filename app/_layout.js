@@ -1,19 +1,24 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Stack } from 'expo-router';
 import { View } from 'react-native';
 import { ThemeContext } from './ThemeContext';
 import Head from 'expo-router/head';
-
+import { useColorScheme } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 export default function Layout() {
-  const [colorScheme, setColorScheme] = useState('light');
+  const deviceColorScheme = useColorScheme();
+  const [colorScheme, setColorScheme] = useState(deviceColorScheme);
+
+  useEffect(() => {
+    setColorScheme(deviceColorScheme);
+  }, [deviceColorScheme]);
 
   const toggleTheme = () => {
     setColorScheme(prev => prev === 'light' ? 'dark' : 'light');
   };
-
+  
   const backgroundColor = colorScheme === 'light' ? '#f1f5f9' : 'rgb(15,23,42)';
   const headerStyle = {
     backgroundColor: colorScheme === 'light' ? '#ffffff' : 'rgb(30,41,59)',
@@ -21,6 +26,8 @@ export default function Layout() {
   const headerTintColor = colorScheme === 'light' ? 'rgb(15,23,42)' : '#ffffff';
 
   return (
+    <GestureHandlerRootView style={{ flex: 1 }}>
+
     <ThemeContext.Provider value={{ colorScheme, toggleTheme }}>
       <View style={{ flex: 1, backgroundColor }}>
         <Stack>
@@ -41,5 +48,7 @@ export default function Layout() {
         </Stack>
       </View>
     </ThemeContext.Provider>
+    </GestureHandlerRootView>
+
   );
 }
