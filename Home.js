@@ -59,7 +59,7 @@ const Home = () => {
   const themeSubTextStyle = colorScheme === "light" ? styles.lightThemeSubText : styles.darkThemeSubText;
   const themeContainerStyle = colorScheme === "light" ? styles.lightContainer : styles.darkContainer;
   const themeCardStyle = colorScheme === "light" ? styles.lightCard : styles.darkCard;
-  const themeSeperatorStyle = colorScheme === "light" ? styles.lightSeparator : styles.darkSeperator;
+  const themeSeparatorStyle = colorScheme === "light" ? styles.lightSeparator : styles.darkSeparator;
   const modalItemStyle = colorScheme === "light" ? styles.modalItemLight : styles.modalItemDark;
 
   const [modalVisible, setModalVisible] = useState(false);
@@ -273,15 +273,28 @@ const Home = () => {
     if (newIndex !== state.selectedIndex) {
       const isMetric = newIndex === 1;
       setState((prevState) => {
-        const newRefTemp = isMetric ? 20 : 68;
-        const newMatTemp = isMetric ? 26.67 : 80;
+        // Convert the temperatures the user entered instead of discarding
+        // them and snapping back to the defaults.
+        const toCelsius = (f) => ((parseFloat(f) - 32) * 5) / 9;
+        const toFahrenheit = (c) => (parseFloat(c) * 9) / 5 + 32;
+        const convertTemp = (t) =>
+          parseFloat((isMetric ? toCelsius(t) : toFahrenheit(t)).toFixed(2));
+
+        const newRefTemp = convertTemp(prevState.refTemp);
+        const newMatTemp = convertTemp(prevState.matTemp);
         const newLengthVal = isMetric
           ? (prevState.lengthVal * 25.4).toFixed(4)
           : (prevState.lengthVal / 25.4).toFixed(4);
 
         const currentMaterial =
           items.find((item) => item.value === value) || items[0];
-        const newCteVal = isMetric
+        // A custom coefficient has no table entry to fall back on, so scale
+        // what the user typed between per-degree-C and per-degree-F rather
+        // than resetting it to zero.
+        const isCustom = !currentMaterial.cteC && !currentMaterial.cteF;
+        const newCteVal = isCustom
+          ? parseFloat(prevState.cteval) * (isMetric ? 9 / 5 : 5 / 9)
+          : isMetric
           ? currentMaterial.cteC
           : currentMaterial.cteF;
 
@@ -434,7 +447,7 @@ const Home = () => {
         {items.map((item, index) => (
           <React.Fragment key={item.key || index}>
             {renderField(item)}
-            {index < items.length - 1 && <View style={[styles.separator, themeSeperatorStyle]} />}
+            {index < items.length - 1 && <View style={[styles.separator, themeSeparatorStyle]} />}
           </React.Fragment>
         ))}
       </View>
@@ -623,7 +636,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  darkSeperator: {
+  darkSeparator: {
 borderColor:"rgb(51,65,85)"
   },
   darkContainer: {
