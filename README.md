@@ -101,3 +101,11 @@ public/           static files copied into the web build
 
 No license is currently declared, which means default copyright applies and
 others may not reuse the code. Add a LICENSE file if reuse is intended.
+
+## Deep links
+
+The web build is a single-page app, so GitHub Pages has no file to serve for a
+route like `/cte/details`. The build copies `index.html` to `404.html`, which
+Pages serves for unmatched paths, letting the router resolve the route on the
+client. Removing that copy step breaks direct links and refreshes on any screen
+other than the home screen.

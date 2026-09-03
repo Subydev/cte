@@ -7,7 +7,7 @@
     "web": "expo start --web",
     "eject": "expo eject",
     "deploy": "gh-pages -t -d dist",
-    "predeploy": "expo export -p web"
+    "predeploy": "expo export -p web && cp dist/index.html dist/404.html"
   },
   "dependencies": {
     "@expo/metro-runtime": "~3.2.1",
